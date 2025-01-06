@@ -4,15 +4,156 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collaborative Whiteboard</title>
-    <link rel="stylesheet" href="/style.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 80%;
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .toolbar input[type="color"],
+        .toolbar input[type="range"],
+        .toolbar button {
+            margin: 0 10px;
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        canvas {
+            background-color: #ffffff;
+            border-radius: 10px;
+            cursor: crosshair;
+            border: 1px solid #ddd;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Add more styles to enhance usability */
+        button {
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #005fa3;
+        }
+
+        button:active {
+            background-color: #004c87;
+        }
+
+    </style>
 </head>
 <body>
-<div class="toolbar">
-    <input type="color" id="colorPicker" value="#000000">
-    <input type="range" id="brushSize" min="1" max="20" value="5">
-    <button id="clearBtn">Clear Canvas</button>
+
+<div class="container">
+    <div class="toolbar">
+        <input type="color" id="colorPicker" value="#000000">
+        <input type="range" id="brushSize" min="1" max="20" value="5">
+        <button id="clearBtn">Clear Canvas</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="whiteboard"></canvas>
+    </div>
 </div>
-<canvas id="whiteboard"></canvas>
-<script type="module" src="/main.js"></script>
+
+<script type="module">
+    // Set up basic canvas functionality
+    const canvas = document.getElementById('whiteboard');
+    const ctx = canvas.getContext('2d');
+
+    // Resize the canvas to fit the window size
+    function resizeCanvas() {
+        canvas.width = window.innerWidth * 0.8; // 80% of the window width
+        canvas.height = window.innerHeight * 0.7; // 70% of the window height
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Draw on canvas functionality
+    let painting = false;
+    let brushColor = document.getElementById('colorPicker').value;
+    let brushSize = document.getElementById('brushSize').value;
+
+    function startPosition(e) {
+        painting = true;
+        draw(e);
+    }
+
+    function endPosition() {
+        painting = false;
+        ctx.beginPath();
+    }
+
+    function draw(e) {
+        if (!painting) return;
+
+        ctx.lineWidth = brushSize;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = brushColor;
+
+        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+    }
+
+    canvas.addEventListener('mousedown', startPosition);
+    canvas.addEventListener('mouseup', endPosition);
+    canvas.addEventListener('mousemove', draw);
+
+    // Event listeners for brush and color changes
+    document.getElementById('colorPicker').addEventListener('input', (e) => {
+        brushColor = e.target.value;
+    });
+
+    document.getElementById('brushSize').addEventListener('input', (e) => {
+        brushSize = e.target.value;
+    });
+
+    // Clear canvas functionality
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+</script>
+
 </body>
 </html>
